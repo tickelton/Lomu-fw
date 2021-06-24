@@ -104,7 +104,8 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, 1);
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, 1);
 
-  while (1)
+  int loop_counter = 3;
+  while (loop_counter > 0)
   {
     /* USER CODE END WHILE */
 
@@ -127,7 +128,30 @@ int main(void)
       led3_state = !led3_state;
       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, led3_state);
 
+      --loop_counter;
   }
+
+#if 0
+  /* Jump to bootloader */
+  HAL_RCC_DeInit();
+  SysTick->CTRL = 0;
+  SysTick->LOAD = 0;
+  SysTick->VAL = 0;
+  __disable_irq();
+  __DSB();
+  /* __HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH(); */
+  SYSCFG->CFGR1 = 0x01;
+  __DSB();
+  __ISB();
+  volatile uint32_t bootloader_addr = 0x0BF90000;
+  void (*SysMemBootJump)(void);
+  SysMemBootJump = (void (*)(void)) (*((uint32_t *)(bootloader_addr + 4)));
+  __set_MSP(*(uint32_t *)bootloader_addr);
+  SysMemBootJump();
+#endif
+
+
+
   /* USER CODE END 3 */
 }
 
